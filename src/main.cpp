@@ -10,6 +10,7 @@
 #include "world.h"
 
 SDL_Window* window;
+SDL_Texture *texTarget;
 
 SDL_Point center = {.x = 100, .y = 100};
 
@@ -19,13 +20,21 @@ Camera camera;
 World world;
 
 void redraw() {
-    SDL_SetRenderDrawColor(ctx.renderer, /* RGBA: black */ 0x00, 0x00, 0x00,
-                           0xFF);
-    SDL_RenderClear(ctx.renderer);
+    
+
+    //Now render to the texture
+	SDL_SetRenderTarget(ctx.renderer, texTarget);
 
     world.draw(ctx);
+    
+	//Detach the texture
+	SDL_SetRenderTarget(ctx.renderer, NULL);
 
+	//Now render the texture target to our screen, but upside down
+	SDL_RenderCopy(ctx.renderer, texTarget, NULL, NULL);
     SDL_RenderPresent(ctx.renderer);
+
+
 }
 
 uint32_t ticksForNextKeyDown = 0;
@@ -102,6 +111,10 @@ int main() {
 
     ctx.setScreenSize(screenX, screenY);
     ctx.setCamera(&camera);
+
+    //Make a target texture to render too
+	texTarget = SDL_CreateTexture(ctx.renderer, SDL_PIXELFORMAT_RGBA8888,
+		SDL_TEXTUREACCESS_TARGET, screenX, screenY);
 
     redraw();
     run_main_loop();

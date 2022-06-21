@@ -12,7 +12,8 @@ void Chunk::init(int x, int y) {
     this->region.tr_x = x + ChunkSize - 1;
     this->region.tr_y = y + ChunkSize - 1;
 
-    std::cout << region.bl_x << "," << region.bl_y << "," << region.tr_x << "," << region.tr_y << std::endl;
+    std::cout << region.bl_x << "," << region.bl_y << "," << region.tr_x << ","
+              << region.tr_y << std::endl;
 
     atoms = &atoms1;
     futureAtoms = &atoms2;
@@ -64,19 +65,13 @@ void Chunk::update(AtomUpdater& atomUpdater, int bl_x, int bl_y, int tr_x,
 #define TOP_RIGHT_PTR neighborChunk(1, 1, world)
 #define TOP_LEFT_PTR neighborChunk(-1, 1, world)
 
-void Chunk::update(World& world) {
+void Chunk::updateConflicts(World& world) {
     if (!this->atoms->dirtyRect.isDirty) return;
 
     auto bl_x_off = std::max(region.bl_x + 1, this->atoms->dirtyRect.bl_x);
     auto bl_y_off = std::max(region.bl_y + 1, this->atoms->dirtyRect.bl_y);
     auto tr_x_off = std::min(region.tr_x - 1, this->atoms->dirtyRect.tr_x);
     auto tr_y_off = std::min(region.tr_y - 1, this->atoms->dirtyRect.tr_y);
-
-    {  // center
-        AtomUpdater atomUpdater(
-            {this, this, this, /**/ this, this, this, /**/ this, this, this});
-        update(atomUpdater, bl_x_off, bl_y_off, tr_x_off, tr_y_off);
-    }
 
     // bottom
     if (atoms->dirtyRect.containsY(this->region.bl_y)) {
@@ -165,19 +160,39 @@ void Chunk::update(World& world) {
     }
 }
 
-void Chunk::draw(RenderContext& renderer) {
-    if (atoms->dirtyRect.isDirty) {
-        renderer.setColour(0x00, 0x80, 0xFF, 0xFF);
-        renderer.renderRectangle(atoms->dirtyRect.bl_x, atoms->dirtyRect.bl_y,
+void Chunk::updateNoConflicts(World& world) {
+    if (!this->atoms->dirtyRect.isDirty) return;
+
+    auto bl_x_off = std::max(region.bl_x + 1, this->atoms->dirtyRect.bl_x);
+    auto bl_y_off = std::max(region.bl_y + 1, this->atoms->dirtyRect.bl_y);
+    auto tr_x_off = std::min(region.tr_x - 1, this->atoms->dirtyRect.tr_x);
+    auto tr_y_off = std::min(region.tr_y - 1, this->atoms->dirtyRect.tr_y);
+
+    // center
+    AtomUpdater atomUpdater(
+        {this, this, this, /**/ this, this, this, /**/ this, this, this});
+    update(atomUpdater, bl_x_off, bl_y_off, tr_x_off, tr_y_off);
+}
+
+void Chunk::update(World& world) {
+    updateConflicts(world);
+    updateNoConflicts(world);
+}
+
+void Chunk::draw(RenderContext& renderer, bool forceDraw) {
+    if (!forceDraw && !atoms->dirtyRect.isDirty) return;
+
+    renderer.setColour(0x00, 0x00, 0x00, 0xFF);
+
+    renderer.renderFillRectangle(atoms->dirtyRect.bl_x, atoms->dirtyRect.bl_y,
                                  atoms->dirtyRect.tr_x, atoms->dirtyRect.tr_y);
-    }
 
     renderer.setColour(0xFF, 0x80, 0xFF, 0xFF);
     renderer.renderRectangle(region.bl_x, region.bl_y, region.tr_x,
                              region.tr_y);
 
-    for (int y = this->region.bl_y; y <= this->region.tr_y; y++) {
-        for (int x = this->region.bl_x; x <= this->region.tr_x; x++) {
+    for (int y = atoms->dirtyRect.bl_y; y <= atoms->dirtyRect.tr_y; y++) {
+        for (int x = atoms->dirtyRect.bl_x; x <= atoms->dirtyRect.tr_x; x++) {
             auto a = get(x, y);
             if (a == Sand) {
                 renderer.setColour(0x00, 0x80, 0x00, 0xFF);
@@ -212,11 +227,11 @@ void Chunk::swapBuffers() {
 }
 
 Chunk* Chunk::neighborChunk(int x, int y, World& world) {
-    auto& n = neighbors[(x+1) + (y+1) * 3];
+    auto& n = neighbors[(x + 1) + (y + 1) * 3];
     if (n) return n;
 
-    n = &world.getChunk((region.bl_x+1) + x * ChunkSize,
-                        (region.bl_y+1) + y * ChunkSize);
-    
+    n = &world.getChunk((region.bl_x + 1) + x * ChunkSize,
+                        (region.bl_y + 1) + y * ChunkSize);
+
     return n;
 }

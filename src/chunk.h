@@ -48,7 +48,10 @@ class Chunk {
 
     void update(World& world);
 
-    void draw(RenderContext& renderer);
+    void updateConflicts(World& world);
+    void updateNoConflicts(World& world);
+
+    void draw(RenderContext& renderer, bool forceDraw);
 
     void swapBuffers();
 

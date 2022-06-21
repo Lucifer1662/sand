@@ -5,12 +5,11 @@
 void World::draw(RenderContext& renderer) {
     for (auto& it : chunks) {
         auto& c = it.second;
-        c->draw(renderer);
+        c->draw(renderer, false);
     }
 }
 
 void World::update() {
-
     for (auto& it : chunks) {
         auto& c = it.second;
         c->update(*this);

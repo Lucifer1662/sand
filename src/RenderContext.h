@@ -68,4 +68,16 @@ class RenderContext {
         rect.h = top-y+1;
         SDL_RenderDrawRect(renderer, &rect);
     }
+
+    //right and top are inclusive
+    void renderFillRectangle(int x, int y, int right, int top){
+        camera->toScreenSpace(x, y);
+        camera->toScreenSpace(right, top);
+        SDL_Rect rect;
+        rect.x = x;
+        rect.y = y;
+        rect.w = right-x+1;
+        rect.h = top-y+1;
+        SDL_RenderFillRect(renderer, &rect);
+    }
 };
