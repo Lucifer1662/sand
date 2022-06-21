@@ -1,7 +1,7 @@
 CC=emcc
 CFLAGS= -s USE_SDL=2 -s USE_SDL_GFX=2 
 OPTIMIZATION = -O2
-OUTPUT = example.html
+OUTPUT = index.html
 DEPS = $(wildcard src/*.h)
 CPPS = $(wildcard src/*.cpp)
 OBJS = $(addprefix temp/,$(CPPS:.cpp=.o))
