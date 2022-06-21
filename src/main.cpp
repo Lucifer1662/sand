@@ -22,7 +22,6 @@ void redraw() {
     ctx.preDrawToScreen();
     world.draw(ctx);
     ctx.postDrawToScreen();
-
 }
 
 uint32_t ticksForNextKeyDown = 0;
@@ -39,46 +38,45 @@ void square(int x, int y, Atom atom, int size) {
 
 bool handle_events() {
     world.update();
-    if (world.finishedUpdate()) {
-        SDL_Event event;
-        SDL_PollEvent(&event);
-        if (event.type == SDL_QUIT) {
-            return false;
-        }
-
-        SDL_PumpEvents();
-        if (event.type == SDL_MOUSEBUTTONUP) holding = false;
-        if (event.type == SDL_MOUSEBUTTONDOWN) holding = true;
-
-        if (holding) {
-            int x, y;
-            Uint32 buttons = SDL_GetMouseState(&x, &y);
-            camera.toWorld(x, y);
-            if (buttons == 1) square(x, y, Sand, 5);
-            if (buttons == 4) square(x, y, Stone, 30);
-        }
-
-        if (event.type == SDL_KEYDOWN) {
-            switch (event.key.keysym.sym) {
-                case SDLK_UP:
-                    camera.addY(3);
-                    break;
-                case SDLK_DOWN:
-                    camera.addY(-3);
-                    break;
-                case SDLK_RIGHT:
-                    camera.addX(3);
-                    break;
-                case SDLK_LEFT:
-                    camera.addX(-3);
-                    break;
-            }
-        }
-
-        world.swapBuffers();
-
-        redraw();
+    SDL_Event event;
+    SDL_PollEvent(&event);
+    if (event.type == SDL_QUIT) {
+        return false;
     }
+
+    SDL_PumpEvents();
+    if (event.type == SDL_MOUSEBUTTONUP) holding = false;
+    if (event.type == SDL_MOUSEBUTTONDOWN) holding = true;
+
+    if (holding) {
+        int x, y;
+        Uint32 buttons = SDL_GetMouseState(&x, &y);
+        camera.toWorld(x, y);
+        if (buttons == 1) square(x, y, Sand, 5);
+        if (buttons == 4) square(x, y, Stone, 30);
+    }
+
+    if (event.type == SDL_KEYDOWN) {
+        switch (event.key.keysym.sym) {
+            case SDLK_UP:
+                camera.addY(3);
+                break;
+            case SDLK_DOWN:
+                camera.addY(-3);
+                break;
+            case SDLK_RIGHT:
+                camera.addX(3);
+                break;
+            case SDLK_LEFT:
+                camera.addX(-3);
+                break;
+        }
+    }
+
+    world.swapBuffers();
+
+    redraw();
+
     return true;
 }
 
@@ -92,7 +90,6 @@ void run_main_loop() {
 }
 
 int main() {
-
     // std::cout << (-11/10) * 10 << std::endl;
     // return 0mai;
     SDL_Init(SDL_INIT_VIDEO);

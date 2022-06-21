@@ -12,29 +12,10 @@ void World::draw(RenderContext& renderer) {
 }
 
 void World::update() {
-    if(pool.get_tasks_total() == 0 && finished){
-        finished = false;
-        for (auto& it : chunks) {
-            Chunk* c = it.second.get();
-            pool.push_task([this, c] {
-                c->updateNoConflicts(*this);
-            });
-        }
-
-        
+    for (auto& it : chunks) {
+        Chunk* c = it.second.get();
+        c->update(*this);
     }
-}
-
-bool World::finishedUpdate() {
-    if (pool.get_tasks_total() == 0 && !finished) {
-        for (auto& it : chunks) {
-            auto& c = it.second;
-            c->updateConflicts(*this);
-        }
-        finished = true;
-    }
-
-    return pool.get_tasks_total() == 0;
 }
 
 void World::swapBuffers() {
@@ -51,9 +32,9 @@ void World::swapBuffers() {
 }
 
 Chunk& World::getChunk(int x, int y) {
-    if (x < 0) x -= ChunkSize-1;
+    if (x < 0) x -= ChunkSize - 1;
 
-    if (y < 0) y -= ChunkSize-1;
+    if (y < 0) y -= ChunkSize - 1;
 
     x = (x / ChunkSize) * ChunkSize;
     y = (y / ChunkSize) * ChunkSize;
@@ -82,15 +63,12 @@ Atom World::getAtom(int x, int y) {
 
 void World::set(int x, int y, Atom atom) {
     auto& c = getChunk(x, y);
-    if (x < c.region.bl_x || c.region.tr_x < x ||
-        y < c.region.bl_y || c.region.tr_y < y) {
+    if (x < c.region.bl_x || c.region.tr_x < x || y < c.region.bl_y ||
+        c.region.tr_y < y) {
         std::cout << "WORLD OUT of bounds: " << x << ", " << y
-                  << " - in : " << c.region.bl_x << c.region.bl_y
-                  << std::endl;
+                  << " - in : " << c.region.bl_x << c.region.bl_y << std::endl;
         return;
     }
     c.set(x, y, atom);
     c.dirty(x, y);
 }
-
-World::World() : pool(8) {}
