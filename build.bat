@@ -1,0 +1,1 @@
+emcc --bind src/main.cpp src/world.cpp src/chunk.cpp -o example.html -s USE_SDL=2 -s USE_SDL_GFX=2

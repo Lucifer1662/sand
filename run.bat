@@ -1,0 +1,1 @@
+npx serve build -l 3000
