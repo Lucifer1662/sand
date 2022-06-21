@@ -10,7 +10,6 @@
 #include "world.h"
 
 SDL_Window* window;
-SDL_Texture *texTarget;
 
 SDL_Point center = {.x = 100, .y = 100};
 
@@ -20,20 +19,9 @@ Camera camera;
 World world;
 
 void redraw() {
-    
-
-    //Now render to the texture
-	SDL_SetRenderTarget(ctx.renderer, texTarget);
-
+    ctx.preDrawToScreen();
     world.draw(ctx);
-    
-	//Detach the texture
-	SDL_SetRenderTarget(ctx.renderer, NULL);
-
-	//Now render the texture target to our screen, but upside down
-	SDL_RenderCopy(ctx.renderer, texTarget, NULL, NULL);
-    SDL_RenderPresent(ctx.renderer);
-
+    ctx.postDrawToScreen();
 
 }
 
@@ -51,45 +39,46 @@ void square(int x, int y, Atom atom, int size) {
 
 bool handle_events() {
     world.update();
-
-    SDL_Event event;
-    SDL_PollEvent(&event);
-    if (event.type == SDL_QUIT) {
-        return false;
-    }
-
-    SDL_PumpEvents();
-    if (event.type == SDL_MOUSEBUTTONUP) holding = false;
-    if (event.type == SDL_MOUSEBUTTONDOWN) holding = true;
-
-    if (holding) {
-        int x, y;
-        Uint32 buttons = SDL_GetMouseState(&x, &y);
-        camera.toWorld(x, y);
-        if (buttons == 1) square(x, y, Sand, 5);
-        if (buttons == 4) square(x, y, Stone, 5);
-    }
-
-    if (event.type == SDL_KEYDOWN) {
-        switch (event.key.keysym.sym) {
-            case SDLK_UP:
-                camera.addY(1);
-                break;
-            case SDLK_DOWN:
-                camera.addY(-1);
-                break;
-            case SDLK_RIGHT:
-                camera.addX(1);
-                break;
-            case SDLK_LEFT:
-                camera.addX(-1);
-                break;
+    if (world.finishedUpdate()) {
+        SDL_Event event;
+        SDL_PollEvent(&event);
+        if (event.type == SDL_QUIT) {
+            return false;
         }
+
+        SDL_PumpEvents();
+        if (event.type == SDL_MOUSEBUTTONUP) holding = false;
+        if (event.type == SDL_MOUSEBUTTONDOWN) holding = true;
+
+        if (holding) {
+            int x, y;
+            Uint32 buttons = SDL_GetMouseState(&x, &y);
+            camera.toWorld(x, y);
+            if (buttons == 1) square(x, y, Sand, 5);
+            if (buttons == 4) square(x, y, Stone, 30);
+        }
+
+        if (event.type == SDL_KEYDOWN) {
+            switch (event.key.keysym.sym) {
+                case SDLK_UP:
+                    camera.addY(3);
+                    break;
+                case SDLK_DOWN:
+                    camera.addY(-3);
+                    break;
+                case SDLK_RIGHT:
+                    camera.addX(3);
+                    break;
+                case SDLK_LEFT:
+                    camera.addX(-3);
+                    break;
+            }
+        }
+
+        world.swapBuffers();
+
+        redraw();
     }
-
-    world.swapBuffers();
-
-    redraw();
     return true;
 }
 
@@ -103,18 +92,19 @@ void run_main_loop() {
 }
 
 int main() {
+
+    // std::cout << (-11/10) * 10 << std::endl;
+    // return 0mai;
     SDL_Init(SDL_INIT_VIDEO);
 
-    int screenX = 300, screenY = 300;
+    int screenX = 1000, screenY = 1000;
 
     SDL_CreateWindowAndRenderer(screenX, screenY, 0, &window, &ctx.renderer);
 
     ctx.setScreenSize(screenX, screenY);
     ctx.setCamera(&camera);
 
-    //Make a target texture to render too
-	texTarget = SDL_CreateTexture(ctx.renderer, SDL_PIXELFORMAT_RGBA8888,
-		SDL_TEXTUREACCESS_TARGET, screenX, screenY);
+    ctx.init();
 
     redraw();
     run_main_loop();

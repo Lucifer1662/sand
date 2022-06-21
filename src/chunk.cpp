@@ -182,17 +182,22 @@ void Chunk::update(World& world) {
 void Chunk::draw(RenderContext& renderer, bool forceDraw) {
     if (!forceDraw && !atoms->dirtyRect.isDirty) return;
 
+    Rect drawRect = atoms->dirtyRect;
+    if(forceDraw){
+        drawRect = region;
+    }
+
     renderer.setColour(0x00, 0x00, 0x00, 0xFF);
 
-    renderer.renderFillRectangle(atoms->dirtyRect.bl_x, atoms->dirtyRect.bl_y,
-                                 atoms->dirtyRect.tr_x, atoms->dirtyRect.tr_y);
+    renderer.renderFillRectangle(drawRect.bl_x, drawRect.bl_y,
+                                 drawRect.tr_x, drawRect.tr_y);
 
     renderer.setColour(0xFF, 0x80, 0xFF, 0xFF);
     renderer.renderRectangle(region.bl_x, region.bl_y, region.tr_x,
                              region.tr_y);
 
-    for (int y = atoms->dirtyRect.bl_y; y <= atoms->dirtyRect.tr_y; y++) {
-        for (int x = atoms->dirtyRect.bl_x; x <= atoms->dirtyRect.tr_x; x++) {
+    for (int y = drawRect.bl_y; y <= drawRect.tr_y; y++) {
+        for (int x = drawRect.bl_x; x <= drawRect.tr_x; x++) {
             auto a = get(x, y);
             if (a == Sand) {
                 renderer.setColour(0x00, 0x80, 0x00, 0xFF);

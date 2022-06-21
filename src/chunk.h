@@ -20,6 +20,8 @@ struct Atoms : public std::array<Atom, ChunkSize * ChunkSize> {
 };
 
 class Chunk {
+   public:
+
     Rect region;
 
     Atoms atoms1;
@@ -28,7 +30,6 @@ class Chunk {
     Atoms* futureAtoms;
     std::array<Chunk*, 9> neighbors;
 
-   public:
     Chunk() = default;
     Chunk(const Chunk&) = delete;
     Chunk(Chunk&&) = delete;
